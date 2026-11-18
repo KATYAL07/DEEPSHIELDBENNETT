@@ -8,7 +8,33 @@
       name="description"
       content="Cairn gives every customer a calm, capable voice agent."
     />
+    <link rel="icon" type="image/png" href="/logo.png" />
     <title>Deep Shield — Explainable media analysis</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #f7f7f5;
+        transition: background-color 0.25s ease;
+      }
+      html.dark, html.dark body {
+        background-color: #0c0d0d;
+      }
+    </style>
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('cairn-theme');
+          var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.setAttribute('data-scheme', 'dark');
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute('content', '#0c0d0d');
+          }
+        } catch(e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

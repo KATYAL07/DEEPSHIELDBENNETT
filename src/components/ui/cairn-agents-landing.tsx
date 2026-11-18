@@ -21,6 +21,7 @@
 // wordmarks, the fallback ridgelines a missing photo falls back to. Photos are
 // props (Unsplash by default). Requires `gsap`.
 import * as React from "react"
+import logoUrl from "../../assets/logo.png"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 
@@ -151,6 +152,8 @@ export interface CairnAgentsLandingProps {
   palette?: CnlPaletteName | CnlPaletteInput
   /** "auto" follows a `.dark` class on an ancestor. */
   scheme?: "auto" | "light" | "dark"
+  /** Called when the user toggles theme. */
+  onSchemeChange?: (scheme: "light" | "dark") => void
   /** Sets the hero window's scale. A definite length; defaults to 100svh. */
   height?: string
   /** Call volumes offered in the dialog. */
@@ -305,24 +308,21 @@ const DEFAULT_QUOTES = {
   items: [
     {
       quote: "A probability is not a verdict. I need to see the evidence, the model version, and the caveat before I decide what happened.",
-      name: "Asha Mehta",
+      name: "RAGHAV SHARMA",
       role: "Media Verification Analyst",
       company: "Deep Shield pilot",
-      avatar: U("1494790108377-be9c29b29330", 200),
     },
     {
       quote: "The interface never calls a person a suspect. It gives me a track, a time range, and enough context to review the incident responsibly.",
-      name: "Jon Bell",
+      name: "ARNAV KATYAL",
       role: "Trust & Safety Reviewer",
       company: "Deep Shield pilot",
-      avatar: U("1500648767791-00dcc994a43e", 200),
     },
     {
       quote: "The report tells me what each engine found and what it cannot prove. That is more useful than one reassuring number.",
-      name: "Nora Alvarez",
+      name: "ISHANT BANSAL",
       role: "Security Operations Analyst",
       company: "Deep Shield pilot",
-      avatar: U("1534528741775-53994a69daeb", 200),
     },
   ],
 }
@@ -597,7 +597,15 @@ const CNL_CSS = `
 .cnl-sheet-top{display:flex;align-items:center;justify-content:space-between;height:44px}
 .cnl-sheet-links{display:flex;flex-direction:column;gap:4px;margin-top:40px}
 .cnl-sheet-links a,.cnl-sheet-links button{font-family:var(--cnl-serif);font-size:44px;line-height:1.15;letter-spacing:-.02em;animation:cnl-rise .6s var(--cnl-ease) both}
-.cnl-sheet-end{margin-top:auto;display:flex;gap:12px;align-items:center}
+.cnl-sheet-end{margin-top:auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+
+.cnl-theme-toggle{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--cnl-line);background:var(--cnl-card);color:var(--cnl-ink);font-size:13px;font-weight:500;cursor:pointer;transition:background-color .25s,border-color .25s,color .25s,transform .2s var(--cnl-ease),box-shadow .25s;box-shadow:0 1px 2px rgba(0,0,0,.04);user-select:none;flex-shrink:0}
+.cnl-theme-toggle:hover{background:var(--cnl-soft);border-color:color-mix(in oklab,var(--cnl-ink) 25%,transparent);transform:translateY(-1px)}
+.cnl-theme-toggle:active{transform:translateY(0)}
+.cnl-theme-toggle .cnl-svg{transition:transform .4s var(--cnl-ease)}
+.cnl-theme-toggle:hover .cnl-svg{transform:rotate(18deg)}
+.cnl-theme-toggle.is-sheet{height:44px;padding:0 18px;font-size:14px;background:var(--cnl-soft);border-color:transparent;box-shadow:none}
+.cnl-root,.cnl-nav,.cnl-app,.cnl-card,.cnl-mem,.cnl-sheet,.cnl-dialog-box,.cnl-foot,.cnl-foot-bottom,.cnl-stat,.cnl-person,.cnl-theme-toggle,.cnl-pill{transition:background-color .3s ease,border-color .3s ease,color .3s ease}
 
 .cnl-pill{--cnl-mx:0px;--cnl-my:0px;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:34px;padding:0 16px;border-radius:999px;background:var(--cnl-ink);color:var(--cnl-bg);font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;transition:background-color .25s,box-shadow .3s;box-shadow:0 1px 0 rgba(255,255,255,.12) inset,0 6px 18px -8px rgba(0,0,0,.45)}
 .cnl-pill.is-lg{height:44px;padding:0 22px;font-size:14.5px}
@@ -812,7 +820,7 @@ const CNL_CSS = `
 .cnl-call-in{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:18px;padding:40px}
 .cnl-player{width:440px;background:rgba(11,11,12,.92);color:#f1f1ee;border-radius:16px;padding:16px;box-shadow:0 40px 90px -30px rgba(0,0,0,.7);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .cnl-player-head{display:flex;align-items:center;gap:11px}
-.cnl-avatar{position:relative;width:34px;height:34px;border-radius:50%;overflow:hidden;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;background:#2a2c2b;color:#fff}
+.cnl-avatar{position:relative;width:34px;height:34px;border-radius:50%;overflow:hidden;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;background:#0f1012;color:#f3f4f6}
 .cnl-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;max-width:none}
 .cnl-player-who{min-width:0;flex:1}
 .cnl-player-who b{display:block;font-size:13.5px;font-weight:600}
@@ -874,7 +882,8 @@ const CNL_CSS = `
 .cnl-people{display:flex;flex-direction:column;border-top:1px solid var(--cnl-line)}
 .cnl-person{position:relative;display:flex;align-items:center;gap:14px;padding:16px 4px;border-bottom:1px solid var(--cnl-line);opacity:.5;transition:opacity .35s}
 .cnl-person:hover,.cnl-person[aria-current=true]{opacity:1}
-.cnl-person .cnl-avatar{width:42px;height:42px;background:var(--cnl-soft);color:var(--cnl-ink)}
+.cnl-person .cnl-avatar{width:42px;height:42px;background:#0f1012;color:#f3f4f6;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+:where(.dark) .cnl-person .cnl-avatar,.cnl-root[data-scheme=dark] .cnl-person .cnl-avatar{background:#17181a;color:#f3f4f6;box-shadow:0 0 0 1px rgba(255,255,255,.14)}
 .cnl-person b{display:block;font-size:14px;font-weight:600}
 .cnl-person span{display:block;font-size:12.5px;color:var(--cnl-mute)}
 .cnl-person i{position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--cnl-ink);transform-origin:0 50%;transform:scaleX(0)}
@@ -972,6 +981,8 @@ const CNL_CSS = `
 .cnl-brand{min-width:0}
 }
 @media (max-width:640px){
+.cnl-theme-toggle:not(.is-sheet){width:34px;padding:0}
+.cnl-theme-toggle:not(.is-sheet) .cnl-theme-toggle-label{display:none}
 .cnl-root{--cnl-in:12px}
 .cnl-hero{padding-top:28px}
 .cnl-hero-stage{margin-top:52px}
@@ -1141,6 +1152,13 @@ const ICONS = {
     </>
   ),
   bolt: <path d="M13 3 5 14h6l-1 7 8-11h-6z" />,
+  sun: (
+    <>
+      <circle cx="12" cy="12" r="4.5" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+    </>
+  ),
+  moon: <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />,
 }
 
 type CnlIconName = keyof typeof ICONS
@@ -1153,15 +1171,23 @@ function Icon({ name, size = 16, stroke = 1.7 }: { name: CnlIconName; size?: num
   )
 }
 
-/** The cairn: four stacked stones. */
 function Mark({ size = 22 }: { size?: number }) {
+  const h = Math.round((size * 28.67) / 32)
   return (
-    <svg className="cnl-svg" width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" fill="currentColor">
-      <ellipse cx="16" cy="25.6" rx="11.6" ry="4.4" />
-      <ellipse cx="15" cy="16.7" rx="8" ry="3.5" />
-      <ellipse cx="16.7" cy="9.5" rx="5.1" ry="2.6" />
-      <ellipse cx="15.7" cy="4.3" rx="2.7" ry="1.6" />
-    </svg>
+    <span
+      className="cnl-svg cnl-mark-icon"
+      style={{
+        display: "inline-block",
+        width: size,
+        height: h,
+        backgroundColor: "currentColor",
+        WebkitMask: `url(${logoUrl}) no-repeat center / contain`,
+        mask: `url(${logoUrl}) no-repeat center / contain`,
+        verticalAlign: "middle",
+        flexShrink: 0,
+      }}
+      aria-hidden="true"
+    />
   )
 }
 
@@ -1283,9 +1309,12 @@ function Pill({
 function Avatar({ name, src }: { name: string; src?: string }) {
   const [failed, setFailed] = React.useState(false)
   return (
-    <span className="cnl-avatar">
-      {initials(name)}
-      {src && !failed ? <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} /> : null}
+    <span className="cnl-avatar" aria-label={name}>
+      {src && !failed ? (
+        <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} />
+      ) : (
+        <Icon name="user" size={19} stroke={1.8} />
+      )}
     </span>
   )
 }
@@ -1312,6 +1341,8 @@ function Nav({
   nav,
   login,
   action,
+  scheme,
+  onToggleScheme,
   onAction,
   onNav,
   reduced,
@@ -1321,6 +1352,8 @@ function Nav({
   nav: CnlLink[]
   login: CnlLink | null
   action: CnlLink
+  scheme: "light" | "dark"
+  onToggleScheme: () => void
   onAction: () => void
   onNav: (href: string | undefined, e?: React.MouseEvent) => void
   reduced: boolean
@@ -1386,6 +1419,16 @@ function Nav({
             {login.label}
           </a>
         ) : null}
+        <button
+          type="button"
+          className="cnl-theme-toggle"
+          onClick={onToggleScheme}
+          aria-label={scheme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+          title={scheme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+        >
+          <Icon name={scheme === "dark" ? "sun" : "moon"} size={15} />
+          <span className="cnl-theme-toggle-label">{scheme === "dark" ? "Light" : "Dark"}</span>
+        </button>
         <Pill label={action.label} href={action.href} onClick={act} reduced={reduced} />
         <button className="cnl-burger" aria-label="Open menu" aria-expanded={open} onClick={() => setOpen(true)}>
           <Icon name="menu" size={18} />
@@ -1418,6 +1461,15 @@ function Nav({
             ))}
           </div>
           <div className="cnl-sheet-end">
+            <button
+              type="button"
+              className="cnl-theme-toggle is-sheet"
+              onClick={onToggleScheme}
+              aria-label={scheme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+            >
+              <Icon name={scheme === "dark" ? "sun" : "moon"} size={16} />
+              <span>{scheme === "dark" ? "Light theme" : "Dark theme"}</span>
+            </button>
             <Pill
               label={action.label}
               size="lg"
@@ -2808,6 +2860,7 @@ export default function CairnAgentsLanding({
   images,
   palette = "fog",
   scheme = "auto",
+  onSchemeChange,
   height = "100svh",
   volumes = DEFAULT_VOLUMES,
   onTalk,
@@ -2820,6 +2873,48 @@ export default function CairnAgentsLanding({
   const reduced = useReduced()
   const rootRef = React.useRef(null as HTMLDivElement | null)
   const [talk, setTalk] = React.useState(false)
+
+  const [currentScheme, setCurrentScheme] = React.useState<"light" | "dark">(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("cairn-theme")
+        if (saved === "light" || saved === "dark") return saved
+        if (scheme === "light" || scheme === "dark") return scheme
+        return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+      } catch (e) {
+        return scheme === "dark" ? "dark" : "light"
+      }
+    }
+    return scheme === "dark" ? "dark" : "light"
+  })
+
+  React.useEffect(() => {
+    if (scheme === "light" || scheme === "dark") {
+      setCurrentScheme(scheme)
+    }
+  }, [scheme])
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+    try {
+      localStorage.setItem("cairn-theme", currentScheme)
+    } catch (e) {}
+    document.documentElement.classList.toggle("dark", currentScheme === "dark")
+    document.documentElement.setAttribute("data-scheme", currentScheme)
+    const metaTheme = document.querySelector('meta[name="theme-color"]')
+    if (metaTheme) {
+      metaTheme.setAttribute("content", currentScheme === "dark" ? pal.night : pal.bg)
+    }
+    document.body.style.backgroundColor = currentScheme === "dark" ? pal.night : pal.bg
+  }, [currentScheme, pal.night, pal.bg])
+
+  const toggleScheme = React.useCallback(() => {
+    setCurrentScheme((prev) => {
+      const next = prev === "dark" ? "light" : "dark"
+      onSchemeChange?.(next)
+      return next
+    })
+  }, [onSchemeChange])
 
   const go = React.useCallback(
     (href: string | undefined, e?: React.MouseEvent) => {
@@ -2937,9 +3032,20 @@ export default function CairnAgentsLanding({
   } as React.CSSProperties
 
   return (
-    <div ref={rootRef} className={"cnl-root" + (className ? " " + className : "")} data-scheme={scheme} style={vars}>
+    <div ref={rootRef} className={"cnl-root" + (className ? " " + className : "")} data-scheme={currentScheme} style={vars}>
       <style>{CNL_CSS}</style>
-      <Nav brand={brand} logo={logo} nav={nav} login={login} action={action} onAction={() => setTalk(true)} onNav={go} reduced={reduced} />
+      <Nav
+        brand={brand}
+        logo={logo}
+        nav={nav}
+        login={login}
+        action={action}
+        scheme={currentScheme}
+        onToggleScheme={toggleScheme}
+        onAction={() => setTalk(true)}
+        onNav={go}
+        reduced={reduced}
+      />
       <main>
         <Hero
           announcement={announcement}
